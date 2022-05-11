@@ -1,12 +1,18 @@
 import {Observable, Observer} from 'rxjs';
 
-export class WorkerObservable <A, R>{
+export class WorkerObservable<A, R> {
 
     private thread: Worker;
 
     constructor(workerFunction: (arg: A) => R) {
 
-        const functionString = "(function(){ postMessage("+workerFunction.toString()+")})()";
+        const functionString = `(function worker() {
+            var self = this;
+            self.onmessage = function(e) {
+                const result = (${workerFunction.toString()})(e.data)
+                self.postMessage(result);
+            }
+        })()`;
 
         const functionBlob = new Blob([functionString], {type: 'text/javascript'});
 

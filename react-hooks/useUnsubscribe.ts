@@ -1,22 +1,22 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useRef} from 'react';
 import {Subscription} from 'rxjs';
 
 export const useUnsubscribe = () => {
 
-    const [subscriptions, setSubscription] = useState<Array<Subscription>>([]);
+    const subscriptions = useRef<Array<Subscription>>([]);
 
     useEffect(() => {
         return () => {
-            subscriptions.forEach((subscription: Subscription) => {
+            subscriptions.current.forEach((subscription: Subscription) => {
                 if( !subscription.closed ) {
                     subscription.unsubscribe();
                 }
             });
-            setSubscription([]);
+            subscriptions.current = [];
         }
     }, []);
 
     return { setSubscription: (subscribtion: Subscription) => {
-        setSubscription([...subscriptions, subscribtion]);
+        subscriptions.current.push(subscribtion);
     }}
 };

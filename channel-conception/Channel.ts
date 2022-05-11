@@ -1,13 +1,19 @@
 import {Observable, Subject, Subscription} from 'rxjs';
 
+import {WorkerObservable} from "../worker-observable/WorkerObservable";
+import {jsonEqual} from "../logic/jsonEqual";
+
 export class Channel<A, D> {
 
     private readonly outputSubject: Subject<D>;
     private observableCreator: (arg: A) => Observable<D>;
     private subscriptions: Subscription[] = [];
-    private observableError: Error | null = null
+    private previousEmittedValue: D | null = null;
+    private comparatorWorker: WorkerObservable<{ value: D, other: D }, boolean> | null = null
 
-    constructor(observableCreator: (arg: A) => Observable<D>) {
+    constructor(
+        observableCreator: (arg: A) => Observable<D>
+    ) {
         this.outputSubject = new Subject<D>();
         this.observableCreator = observableCreator;
     }
@@ -23,12 +29,19 @@ export class Channel<A, D> {
         ));
     }
 
-    subscribe(next?: (data: D) => void, customErrorHandler?: (error: Error) => void): Subscription {
-
+    subscribe(
+        next?: (data: D) => void,
+        customErrorHandler?: (error: Error) => void,
+        deepEqual = false
+    ): Subscription {
         const outputSubjectSubscription = this.outputSubject.subscribe(
             (data: D) => {
                 if (next) {
-                    next(data)
+                    if (deepEqual) {
+                        this.deepEqual(next, data);
+                    } else {
+                        next(data)
+                    }
                 }
             },
             (error: Error) => {
@@ -40,6 +53,32 @@ export class Channel<A, D> {
         );
         this.subscriptions.push(outputSubjectSubscription);
         return outputSubjectSubscription;
+    }
+
+    private deepEqual(next: (data: D) => void, data: D): void {
+        if (!this.previousEmittedValue) {
+            next(data)
+        }
+        this.previousEmittedValue = data;
+
+        if( !this.comparatorWorker ) {
+            this.comparatorWorker = new WorkerObservable<{ value: D, other: D }, boolean>(
+                jsonEqual
+            )
+        }
+
+        this.comparatorWorker.getObservable(
+            {value: data, other: this.previousEmittedValue}
+        ).subscribe(
+            (result) => {
+                if (result) {
+                    next(data)
+                }
+            },
+            (equalityError) => {
+                console.error(equalityError)
+            }
+        )
     }
 
     unsubscribe() {
