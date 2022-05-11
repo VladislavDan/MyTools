@@ -1,7 +1,7 @@
 import {Observable, Subject, Subscription} from 'rxjs';
 
-import {WorkerObservable} from "../worker-observable/WorkerObservable";
-import {jsonEqual} from "../logic/jsonEqual";
+import {jsonEqual} from "./logic/jsonEqual";
+import {fromThread} from "../worker-observable/operators/fromThread";
 
 export class Channel<A, D> {
 
@@ -9,7 +9,6 @@ export class Channel<A, D> {
     private observableCreator: (arg: A) => Observable<D>;
     private subscriptions: Subscription[] = [];
     private previousEmittedValue: D | null = null;
-    private comparatorWorker: WorkerObservable<{ value: D, other: D }, boolean> | null = null
 
     constructor(
         observableCreator: (arg: A) => Observable<D>
@@ -61,14 +60,9 @@ export class Channel<A, D> {
         }
         this.previousEmittedValue = data;
 
-        if( !this.comparatorWorker ) {
-            this.comparatorWorker = new WorkerObservable<{ value: D, other: D }, boolean>(
-                jsonEqual
-            )
-        }
-
-        this.comparatorWorker.getObservable(
-            {value: data, other: this.previousEmittedValue}
+        const subscription = fromThread(
+            {value: data, other: this.previousEmittedValue},
+            jsonEqual
         ).subscribe(
             (result) => {
                 if (result) {
@@ -79,6 +73,7 @@ export class Channel<A, D> {
                 console.error(equalityError)
             }
         )
+        this.subscriptions.push(subscription)
     }
 
     unsubscribe() {

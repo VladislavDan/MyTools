@@ -18,5 +18,5 @@ export const useChannel = <A, D>(channel: Channel<A, D>, next?: (value: D) => vo
         return () => {
             channel.unsubscribe();
         }
-    }, []);
+    }, [channel]);
 };
