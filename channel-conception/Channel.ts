@@ -57,16 +57,17 @@ export class Channel<A, D> {
     private deepEqual(next: (data: D) => void, data: D): void {
         if (!this.previousEmittedValue) {
             next(data)
+            this.previousEmittedValue = data;
         }
-        this.previousEmittedValue = data;
 
         const subscription = fromThread(
             {value: data, other: this.previousEmittedValue},
             jsonEqual
         ).subscribe(
             (result) => {
-                if (result) {
+                if (!result) {
                     next(data)
+                    this.previousEmittedValue = data;
                 }
             },
             (equalityError) => {
@@ -83,5 +84,6 @@ export class Channel<A, D> {
             }
         });
         this.subscriptions = [];
+        this.previousEmittedValue = null;
     }
 }

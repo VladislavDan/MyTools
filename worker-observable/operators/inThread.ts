@@ -2,7 +2,7 @@ import {Observable} from 'rxjs';
 
 import {functionToThread} from "../logic/functionToThread";
 
-const inThread = <A, R>(workerFunction: (arg: A) => R) => (source: Observable<A>) => {
+export const inThread = <SA, TA, R>(argumentMapper: (arg: SA) => TA, workerFunction: (arg: TA) => R) => (source: Observable<SA>) => {
 
     const thread = functionToThread(workerFunction)
 
@@ -10,7 +10,7 @@ const inThread = <A, R>(workerFunction: (arg: A) => R) => (source: Observable<A>
 
         return source.subscribe({
             next(arg) {
-                thread.postMessage(arg);
+                thread.postMessage(argumentMapper(arg));
                 thread.onmessage = (event: MessageEvent) => {
                     observer.next(event.data);
                 }

@@ -10,8 +10,8 @@ export const fromThread = <A, R>(arg: A, workerFunction: (arg: A) => R) => {
         thread.postMessage(arg);
         thread.onmessage = (event: MessageEvent) => {
             observer.next(event.data);
-            thread.terminate();
             observer.complete();
+            thread.terminate();
         }
         thread.onerror = (err) => {
             observer.error(err);
