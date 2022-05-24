@@ -7,7 +7,7 @@ export const useChannel = <A, D>(
     channel: Channel<A, D>,
     next?: (value: D) => void,
     additionalErrorHandler?: (error: Error) => void,
-    deepEqual = true
+    deepEqual: boolean = false
 ) => {
 
     const value = useRef<{ subscription: Subscription | null }>({

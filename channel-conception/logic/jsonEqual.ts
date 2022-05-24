@@ -1,8 +1,6 @@
 export const jsonEqual = <T>(args: { value: T, other: T }) => {
     const {value, other} = args;
 
-    console.log(value, other)
-
     if(typeof value !== 'object') {
         return value === other;
     }
