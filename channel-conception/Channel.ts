@@ -9,6 +9,8 @@ export class Channel<A, D> {
     private observableCreator: (arg: A) => Observable<D>;
     private subscriptions: Subscription[] = [];
     private previousEmittedValue: D | null = null;
+    private static globalErrorHandler: (error: Error) => void;
+    private static globalNextHandler: () => void;
 
     constructor(
         observableCreator: (arg: A) => Observable<D>
@@ -18,6 +20,7 @@ export class Channel<A, D> {
     }
 
     next(value: A) {
+        //Don't make implement complete method because it can affect on subject behaviour in app
         this.subscriptions.push(this.observableCreator(value).subscribe(
             (value) => {
                 this.outputSubject.next(value);
@@ -40,6 +43,7 @@ export class Channel<A, D> {
                         this.deepEqual(next, data);
                     } else {
                         next(data)
+                        Channel.globalNextHandler()
                     }
                 }
             },
@@ -47,7 +51,7 @@ export class Channel<A, D> {
                 if (customErrorHandler) {
                     customErrorHandler(error);
                 }
-                console.error(error)
+                Channel.globalErrorHandler(error)
             }
         );
         this.subscriptions.push(outputSubjectSubscription);
@@ -57,6 +61,7 @@ export class Channel<A, D> {
     private deepEqual(next: (data: D) => void, data: D): void {
         if (!this.previousEmittedValue) {
             next(data)
+            Channel.globalNextHandler()
             this.previousEmittedValue = data;
         }
 
@@ -67,6 +72,7 @@ export class Channel<A, D> {
             (result) => {
                 if (!result) {
                     next(data)
+                    Channel.globalNextHandler()
                     this.previousEmittedValue = data;
                 }
             },
@@ -85,5 +91,13 @@ export class Channel<A, D> {
         });
         this.subscriptions = [];
         this.previousEmittedValue = null;
+    }
+
+    static setGlobalErrorHandler = (globalErrorHandler: (error: Error) => void) => {
+        Channel.globalErrorHandler = globalErrorHandler;
+    }
+
+    static setGlobalNextHandler = (globalNextHandler: () => void) => {
+        Channel.globalNextHandler = globalNextHandler;
     }
 }
