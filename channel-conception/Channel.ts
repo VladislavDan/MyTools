@@ -9,8 +9,8 @@ export class Channel<A, D> {
     private observableCreator: (arg: A) => Observable<D>;
     private subscriptions: Subscription[] = [];
     private previousEmittedValue: D | null = null;
-    private static globalErrorHandler: (error: Error) => void;
-    private static globalNextHandler: () => void;
+    private static globalErrorHandler = (error: Error) => {};
+    private static globalNextHandler = () => {};
 
     constructor(
         observableCreator: (arg: A) => Observable<D>
