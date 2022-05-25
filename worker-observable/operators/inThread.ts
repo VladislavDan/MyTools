@@ -2,7 +2,11 @@ import {Observable} from 'rxjs';
 
 import {functionToThread} from "../logic/functionToThread";
 
-export const inThread = <SA, TA, R>(argumentMapper: (arg: SA) => TA, workerFunction: (arg: TA) => R) => (source: Observable<SA>) => {
+export const inThread = <SA, TA, R>(
+    argumentMapper: (arg: SA) => TA,
+    workerFunction: (arg: TA) => R,
+    likeTap = false
+) => (source: Observable<SA>) => {
 
     const thread = functionToThread(workerFunction)
 
@@ -11,8 +15,12 @@ export const inThread = <SA, TA, R>(argumentMapper: (arg: SA) => TA, workerFunct
         return source.subscribe({
             next(arg) {
                 thread.postMessage(argumentMapper(arg));
-                thread.onmessage = (event: MessageEvent) => {
-                    observer.next(event.data);
+                if(!likeTap) {
+                    thread.onmessage = (event: MessageEvent) => {
+                        observer.next(event.data);
+                    }
+                } else {
+                    observer.next(arg);
                 }
             },
             error() {
