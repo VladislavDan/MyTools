@@ -2,7 +2,7 @@ import {Observable} from 'rxjs';
 
 import {functionToThread} from "../logic/functionToThread";
 
-export const fromThread = <A, R>(arg: A, workerFunction: (arg: A) => R) => {
+export const fromThread = <A, R>(arg: A, workerFunction: (arg: A) => R): Observable<R> => {
 
     const thread = functionToThread(workerFunction)
 
