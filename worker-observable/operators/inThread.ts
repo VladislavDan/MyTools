@@ -1,38 +1,48 @@
-import {asyncScheduler, Observable} from 'rxjs';
+import {Observable} from 'rxjs';
 
 import {functionToThread} from "../logic/functionToThread";
-import {observeOn} from "rxjs/operators";
 
-export const inThread = <SA, TA, R>(
-    argumentMapper: (arg: SA) => TA,
-    workerFunction: (arg: TA) => R,
-    likeTap = false
+export const inThread = <SA, R>(
+  arg: SA,
+  workerFunction: (arg: SA) => R,
+  likeTap = false
 ) => (source: Observable<SA>) => {
 
-    const thread = functionToThread(workerFunction)
+  const thread = functionToThread(workerFunction)
 
-    return new Observable(observer => {
+  return new Observable(observer => {
 
-        return source.subscribe({
-            next(arg) {
-                thread.postMessage(argumentMapper(arg));
-                if(!likeTap) {
-                    thread.onmessage = (event: MessageEvent) => {
-                        observer.next(event.data);
-                    }
-                } else {
-                    observer.next(arg);
-                }
-            },
-            error() {
-                thread.onerror = (err) => {
-                    observer.error(err);
-                }
-            },
-            complete() {
-                observer.complete();
-                thread.terminate();
-            }
-        });
-    }).pipe(observeOn(asyncScheduler));
+    return source.subscribe({
+      next(arg) {
+        thread.postMessage(arg);
+        if (!likeTap) {
+          thread.onmessage = (event: MessageEvent) => {
+            observer.next(event.data);
+            thread.terminate();
+            observer.complete();
+          }
+        } else {
+          thread.onmessage = () => {
+            thread.terminate();
+          }
+          observer.next(arg);
+          observer.complete();
+        }
+      },
+      error() {
+        if (!likeTap) {
+          thread.onerror = (err) => {
+            observer.error(err);
+            thread.terminate();
+          }
+        } else {
+          thread.onerror = (err) => {
+            console.warn(err);
+            thread.terminate();
+          }
+          observer.complete();
+        }
+      }
+    });
+  });
 }
