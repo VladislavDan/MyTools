@@ -1,6 +1,7 @@
-import {Observable} from 'rxjs';
+import {asyncScheduler, Observable} from 'rxjs';
 
 import {functionToThread} from "../logic/functionToThread";
+import {observeOn} from "rxjs/operators";
 
 export const inThread = <SA, TA, R>(
     argumentMapper: (arg: SA) => TA,
@@ -33,5 +34,5 @@ export const inThread = <SA, TA, R>(
                 thread.terminate();
             }
         });
-    });
+    }).pipe(observeOn(asyncScheduler));
 }
