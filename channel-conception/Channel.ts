@@ -1,8 +1,5 @@
 import {Observable, Subject, Subscription} from 'rxjs';
 
-import {jsonEqual} from "./logic/jsonEqual";
-import {fromThread} from "../worker-observable/operators/fromThread";
-
 export class Channel<A, D> {
 
     private readonly outputSubject: Subject<D>;
@@ -34,13 +31,13 @@ export class Channel<A, D> {
     subscribe(
         next?: (data: D) => void,
         customErrorHandler?: (error: Error) => void,
-        deepEqual = false
+        shallowEqual = false
     ): Subscription {
         const outputSubjectSubscription = this.outputSubject.subscribe(
             (data: D) => {
                 if (next) {
-                    if (deepEqual) {
-                        this.deepEqual(next, data);
+                    if (shallowEqual) {
+                        this.shallowEqual(next, data);
                     } else {
                         next(data)
                         Channel.globalNextHandler()
@@ -58,29 +55,16 @@ export class Channel<A, D> {
         return outputSubjectSubscription;
     }
 
-    private deepEqual(next: (data: D) => void, data: D): void {
+    private shallowEqual(next: (data: D) => void, data: D): void {
         if (!this.previousEmittedValue) {
             next(data)
             Channel.globalNextHandler()
             this.previousEmittedValue = data;
+        } else if (this.previousEmittedValue !== data) {
+            next(data)
+            Channel.globalNextHandler()
+            this.previousEmittedValue = data;
         }
-
-        const subscription = fromThread(
-            {value: data, other: this.previousEmittedValue},
-            jsonEqual
-        ).subscribe(
-            (result) => {
-                if (!result) {
-                    next(data)
-                    Channel.globalNextHandler()
-                    this.previousEmittedValue = data;
-                }
-            },
-            (equalityError) => {
-                console.error(equalityError)
-            }
-        )
-        this.subscriptions.push(subscription)
     }
 
     unsubscribe() {
