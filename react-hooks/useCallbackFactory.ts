@@ -4,22 +4,22 @@ import {useUnsubscribe} from "./useUnsubscribe";
 import {ICallbackSettings} from "./types/ICallbackSettings";
 import {CallbackFactory} from "../react-utils/CallbackFactory";
 
-export const useCallbackFactory = <NS, CS, PS, CX>(
-    initialState: CS,
-    services: PS,
-    context: Context<CX>
+export const useCallbackFactory = <T extends ICallbackSettings<any, any, any, any>>(
+    initialState: T["state"],
+    services: T["services"],
+    context: Context<T["context"]>
 ) => {
-    const location = useLocation<NS>();
+    const location = useLocation<T["location"]>();
 
-    const history = useHistory<NS>();
+    const history = useHistory<T["location"]>();
 
-    const [state, setState] = useState<CS>(initialState);
+    const [state, setState] = useState<T["state"]>(initialState);
 
     const {setSubscription} = useUnsubscribe();
 
-    const value = useContext<CX>(context);
+    const value = useContext<T["context"]>(context);
 
-    const callbackSettings: ICallbackSettings<CS, PS, NS, CX> = {
+    const callbackSettings: ICallbackSettings<T["state"], T["services"], T["location"]["state"], T["context"]> = {
         location,
         history,
         services,
