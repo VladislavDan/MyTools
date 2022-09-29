@@ -1,0 +1,1 @@
+export type ICallback<S, A> = (settings: Pick<S, Exclude<keyof S, 'state'>>, args?: A) => void

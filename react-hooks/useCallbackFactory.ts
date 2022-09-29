@@ -1,8 +1,8 @@
 import {useHistory, useLocation} from "react-router";
 import {Context, useContext, useState} from "react";
 import {useUnsubscribe} from "./useUnsubscribe";
-import {ICallbackSettings} from "./types/ICallbackSettings";
-import {CallbackFactory} from "../react-utils/CallbackFactory";
+import {ICallbackSettings} from "../react-types/ICallbackSettings";
+import {CallbackFactory} from "../react-callback-factory/CallbackFactory";
 
 export const useCallbackFactory = <T extends ICallbackSettings<any, any, any, any>>(
     initialState: T["state"],
@@ -29,8 +29,11 @@ export const useCallbackFactory = <T extends ICallbackSettings<any, any, any, an
         setSubscription
     }
 
+    const externalCallbackSettings = callbackSettings as Pick<ICallbackSettings<any, any, any, any>,
+        Exclude<keyof ICallbackSettings<any, any, any, any>, 'services'>>
+
     return {
         callbackFactory: CallbackFactory(callbackSettings),
-        callbackSettings
+        externalCallbackSettings
     };
 }
