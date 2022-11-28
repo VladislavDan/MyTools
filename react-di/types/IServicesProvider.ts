@@ -1,11 +1,7 @@
-import {Dependency} from "../Dependency";
+import {IDependency} from './IDependency';
+import {IDependenciesMapper} from 'src/MyTools/react-di/types/IDependenciesMapper';
 
 export interface IServicesProvider {
-    dependenciesConstructors: {
-        [key: string]: { new(...args: Dependency[]): Dependency };
-    };
-    dependenciesClasses: {
-        [key: string]: Dependency;
-    };
-    updateDependenciesClasses: (dependencyConstructor: Dependency, scope?: string) => void
+    dependenciesMapper: IDependenciesMapper;
+    updateDependencies: (dependencyKey: string, dependencyConstructor: IDependency) => void
 }

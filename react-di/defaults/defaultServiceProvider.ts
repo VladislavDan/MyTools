@@ -1,9 +1,8 @@
-import {IServicesProvider} from "../types/IServicesProvider";
-import {Dependency} from "../Dependency";
+import {IServicesProvider} from '../types/IServicesProvider';
+import {IDependency} from 'src/MyTools/react-di/types/IDependency';
 
 export const defaultServiceProvider: IServicesProvider = {
-    dependenciesConstructors: {},
-    dependenciesClasses: {},
-    updateDependenciesClasses: (dependencyConstructor: Dependency) => {
+    dependenciesMapper: {},
+    updateDependencies: (key: string, dependency: IDependency) => {
     }
 };
