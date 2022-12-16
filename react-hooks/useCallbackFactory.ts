@@ -1,17 +1,17 @@
-import {useHistory, useLocation} from "react-router";
-import {Context, useContext, useState} from "react";
-import {useUnsubscribe} from "./useUnsubscribe";
-import {ICallbackSettings} from "../react-types/ICallbackSettings";
-import {CallbackFactory} from "../react-callback-factory/CallbackFactory";
+import {useHistory, useLocation} from 'react-router';
+import {Context, useContext, useState} from 'react';
+import {useUnsubscribe} from './useUnsubscribe';
+import {ICallbackSettings} from '../react-types/ICallbackSettings';
+import {CallbackFactory} from '../react-callback-factory/CallbackFactory';
 
 export const useCallbackFactory = <T extends ICallbackSettings<any, any, any, any>>(
-    initialState: T["state"],
-    services: T["services"],
-    context: Context<T["context"]>
+    initialState: T['state'],
+    services: T['services'],
+    context: Context<T['context']>
 ) => {
-    const location = useLocation<T["location"]>();
+    const location = useLocation<T['location']>();
 
-    const history = useHistory<T["location"]>();
+    const history = useHistory<T['location']>();
 
     const [state, setState] = useState<T["state"]>(initialState);
 
@@ -19,7 +19,7 @@ export const useCallbackFactory = <T extends ICallbackSettings<any, any, any, an
 
     const value = useContext<T["context"]>(context);
 
-    const callbackSettings: ICallbackSettings<T["state"], T["services"], T["location"]["state"], T["context"]> = {
+    const callbackSettings: ICallbackSettings<T['state'], T['services'], T['location']['state'], T['context']> = {
         location,
         history,
         services,
@@ -29,8 +29,8 @@ export const useCallbackFactory = <T extends ICallbackSettings<any, any, any, an
         setSubscription
     }
 
-    const externalCallbackSettings = callbackSettings as Pick<ICallbackSettings<any, any, any, any>,
-        Exclude<keyof ICallbackSettings<any, any, any, any>, 'services'>>
+    const externalCallbackSettings = callbackSettings as Pick<ICallbackSettings<T['state'], T['services'], T['location']['state'], T['context']>,
+        Exclude<keyof ICallbackSettings<T['state'], T['services'], T['location']['state'], T['context']>, 'services'>>
 
     return {
         callbackFactory: CallbackFactory(callbackSettings),
