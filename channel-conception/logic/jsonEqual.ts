@@ -10,7 +10,6 @@ export const jsonEqual = <T>(args: { value: T, other: T }) => {
            return false;
        }
     }
-    console.log('checked')
 
     return JSON.stringify(value) === JSON.stringify(other);
 }
