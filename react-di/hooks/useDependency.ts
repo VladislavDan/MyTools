@@ -1,20 +1,13 @@
-import {useContext, useMemo} from "react";
-import {IServicesProvider} from "../types/IServicesProvider";
-import {DependenciesContext} from "../DependenciesProvider";
-import {Dependency} from "../Dependency";
-import {getDependency} from "../logic/getDependency";
-import {IDependencyArgs} from "../types/IDependencyArgs";
+import {useContext, useMemo} from 'react';
+import {IServicesProvider} from '../types/IServicesProvider';
+import {DependenciesContext} from '../DependenciesProvider';
+import {getDependency} from '../logic/getDependency';
 
-export const useDependency = <T extends Dependency,
-    A extends Dependency,
-    B extends Dependency,
-    C extends Dependency>(
-    dependencyConstructor: { new(...args: IDependencyArgs<A, B, C, any>): T }
-): T => {
+export const useDependencyContext = <T>(dependencyKey: string | number): T => {
     const context = useContext<IServicesProvider>(DependenciesContext);
 
     const dependency = useMemo(() => {
-        return getDependency(dependencyConstructor, context);
+        return getDependency(dependencyKey, context);
     }, []);
 
     return dependency as T;

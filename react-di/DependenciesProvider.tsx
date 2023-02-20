@@ -1,30 +1,21 @@
-import {createContext, FC, useRef} from "react";
-import {defaultServiceProvider} from "./defaults/defaultServiceProvider";
-import {useConstructor} from "../react-hooks/useConstructor";
-import {IServicesProvider} from "./types/IServicesProvider";
-import {Dependency} from "./Dependency";
-import {IDependencyArgs} from "./types/IDependencyArgs";
+import {createContext, FC, useRef} from 'react';
+import {defaultServiceProvider} from './defaults/defaultServiceProvider';
+import {IServicesProvider} from './types/IServicesProvider';
+import {IDependenciesMap} from './types/IDependenciesMap';
 
 export const DependenciesContext = createContext<IServicesProvider>(defaultServiceProvider);
 
-export const DependenciesProvider: FC<{ functions: { new(...args: IDependencyArgs<any, any, any, any>): Dependency }[] }> = (
-    {functions, children}
+export const DependenciesProvider: FC<{ dependenciesMap: IDependenciesMap }> = (
+    {dependenciesMap, children}
 ) => {
 
-    const ref = useRef(defaultServiceProvider);
+    const ref = useRef(dependenciesMap);
 
-    const updateDependenciesClasses = (classInstance: Dependency) => {
-        const dependencyKey = classInstance.constructor.name;
-        ref.current.dependenciesClasses[dependencyKey] = classInstance;
+    const updateDependency = (dependency: Object, key: string | number) => {
+        ref.current[key].dependency = dependency;
     }
 
-    useConstructor(() => {
-        functions.forEach((func) => {
-            ref.current.dependenciesConstructors[func.name] = func;
-        })
-    });
-
-    return <DependenciesContext.Provider value={{...ref.current, updateDependenciesClasses}}>
+    return <DependenciesContext.Provider value={{dependenciesMap: ref.current, updateDependency}}>
         {children}
     </DependenciesContext.Provider>
 }

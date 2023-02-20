@@ -1,30 +1,21 @@
-import {Dependency} from '../Dependency';
 import {IServicesProvider} from '../types/IServicesProvider';
-import {IDependencyArgs} from '../types/IDependencyArgs';
 
-let dependenciesInjectionPath: string[] = [];
-export const getDependency = <T extends Dependency,
-    A extends Dependency,
-    B extends Dependency,
-    C extends Dependency,
-    >(
-    dependencyKey: { new(...args: IDependencyArgs<A, B, C, any>): T } | string,
+let dependenciesInjectionPath: Array<number | string> = [];
+export const getDependency = <T>(
+    dependencyKey: string | number,
     context: IServicesProvider,
     clearDependenciesPath = true
-) => {
+): T => {
     let dependency;
-    let initialArgs: Dependency[] = [];
+    let initialArgs: Object[] = [];
 
-    if (typeof dependencyKey !== 'string') {
-        dependencyKey = dependencyKey.name;
-    }
     if (clearDependenciesPath) {
         dependenciesInjectionPath = [];
     }
 
     dependenciesInjectionPath.push(dependencyKey);
     let countOfInjectionKey = 0;
-    dependenciesInjectionPath.forEach((key: string) => {
+    dependenciesInjectionPath.forEach((key: string | number) => {
         if (key === dependencyKey) {
             countOfInjectionKey++;
         }
@@ -34,26 +25,29 @@ export const getDependency = <T extends Dependency,
     }
 
     if (
-        !context.dependenciesClasses[dependencyKey]
-        && context.dependenciesConstructors[dependencyKey]
+        context.dependenciesMap[dependencyKey]
+        && !context.dependenciesMap[dependencyKey].dependency
+        && context.dependenciesMap[dependencyKey].dependencyConstructor
     ) {
-        const constructor = context.dependenciesConstructors[dependencyKey];
-        const args = /constructor\(\s*([^)]+?)\s*\)/.exec(constructor.toString())
+        const constructor = context.dependenciesMap[dependencyKey].dependencyConstructor;
+        const args = context.dependenciesMap[dependencyKey].arguments;
 
-        initialArgs = args ? args[1].split(/\s*,\s*/).map(
-            (arg) => {
-                arg = arg.charAt(0).toUpperCase() + arg.slice(1);
-                return getDependency(arg, context, false);
+        initialArgs = args ? args.map(
+            (argument) => {
+                return getDependency(argument, context, false);
             }
         ) : [];
 
         const classInstance = new constructor(...initialArgs);
-        context.updateDependenciesClasses(classInstance);
+        context.updateDependency(classInstance, dependencyKey);
         dependency = classInstance;
-    } else if (context.dependenciesClasses[dependencyKey]) {
-        dependency = context.dependenciesClasses[dependencyKey];
+    } else if (
+        context.dependenciesMap[dependencyKey]
+        && context.dependenciesMap[dependencyKey].dependency
+    ) {
+        dependency = context.dependenciesMap[dependencyKey].dependency;
     } else {
         throw Error(`There is no any suited dependency with name: ${dependencyKey}!`);
     }
-    return dependency;
+    return dependency as T;
 }

@@ -1,11 +1,6 @@
-import {Dependency} from "../Dependency";
+import {IDependenciesMap} from './IDependenciesMap';
 
 export interface IServicesProvider {
-    dependenciesConstructors: {
-        [key: string]: { new(...args: Dependency[]): Dependency };
-    };
-    dependenciesClasses: {
-        [key: string]: Dependency;
-    };
-    updateDependenciesClasses: (dependencyConstructor: Dependency, scope?: string) => void
+    dependenciesMap: IDependenciesMap;
+    updateDependency: (dependency: Object, key: string | number) => void;
 }

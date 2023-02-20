@@ -1,9 +1,7 @@
-import {IServicesProvider} from "../types/IServicesProvider";
-import {Dependency} from "../Dependency";
+import {IServicesProvider} from '../types/IServicesProvider';
 
 export const defaultServiceProvider: IServicesProvider = {
-    dependenciesConstructors: {},
-    dependenciesClasses: {},
-    updateDependenciesClasses: (dependencyConstructor: Dependency) => {
+    dependenciesMap: {},
+    updateDependency: () => {
     }
 };
